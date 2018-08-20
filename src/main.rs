@@ -5,8 +5,9 @@ extern crate rand;
 use piston_window::{OpenGL, PistonWindow, Size, WindowSettings};
 use opengl_graphics::GlGraphics;
 
-mod menu;
 mod config;
+mod menu;
+mod settings;
 
 fn main() {
     let title = "Life Simulation";
@@ -24,7 +25,7 @@ fn main() {
         .samples(4)
         .fullscreen(false)
         .resizable(false)
-        .exit_on_esc(true)
+        .exit_on_esc(false)
         .build()
         .unwrap_or_else(|error| panic!("Failed to build PistonWindow: {}", error));
 

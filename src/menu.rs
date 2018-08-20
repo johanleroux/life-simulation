@@ -2,7 +2,8 @@ use opengl_graphics::{GlGraphics, GlyphCache};
 use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, RenderEvent,
                     Size, TextureSettings, Transformed};
 
-use config::color;
+use config::{color, font};
+use settings;
 
 #[derive(Copy, Clone)]
 enum MenuSelection {
@@ -12,65 +13,80 @@ enum MenuSelection {
     Exit,
 }
 
+/// Volume for music and sound effects.
+#[derive(Copy, Clone)]
+pub struct Settings {
+    pub setting1: f64,
+    pub setting2: f64,
+}
+
+impl Settings {
+    pub fn new() -> Self {
+        Settings {
+            setting1: 0.0,
+            setting2: 0.0,
+        }
+    }
+}
+
 fn draw(
     context: Context,
     graphics: &mut GlGraphics,
     font: &mut GlyphCache,
-    menu_padding: f64,
-    menu_selection: MenuSelection,
+    menu_selection: MenuSelection
 ) {
-    let mut _menu_simulate = color::WHITE;
-    let mut _menu_load     = color::WHITE;
-    let mut _menu_settings = color::WHITE;
-    let mut _menu_exit     = color::WHITE;
+    let mut _menu_color_simulate = color::WHITE;
+    let mut _menu_color_load     = color::WHITE;
+    let mut _menu_color_settings = color::WHITE;
+    let mut _menu_color_exit     = color::WHITE;
 
     match menu_selection {
-        MenuSelection::Simulate => _menu_simulate = color::CYAN,
-        MenuSelection::Load     => _menu_load     = color::CYAN,
-        MenuSelection::Settings => _menu_settings = color::CYAN,
-        MenuSelection::Exit     => _menu_exit     = color::CYAN,
+        MenuSelection::Simulate => _menu_color_simulate = color::CYAN,
+        MenuSelection::Load     => _menu_color_load     = color::CYAN,
+        MenuSelection::Settings => _menu_color_settings = color::CYAN,
+        MenuSelection::Exit     => _menu_color_exit     = color::CYAN,
     }
 
     let menu_lines = [
         color::ColoredText {
-            color: _menu_simulate,
+            color: _menu_color_simulate,
             text: "Simulate",
         },
         color::ColoredText {
-            color: _menu_load,
+            color: _menu_color_load,
             text: "Load",
         },
         color::ColoredText {
-            color: _menu_settings,
+            color: _menu_color_settings,
             text: "Settings",
         },
         color::ColoredText {
-            color: _menu_exit,
+            color: _menu_color_exit,
             text: "Exit",
         },
     ];
 
     text(
         color::WHITE,
-        48,
+        font::SIZE + 12,
         "Life Simulation",
         font,
         context.transform.trans(
-                menu_padding,
-                48.0 + menu_padding,
-            ),
-            graphics,
-        ).unwrap();
+            font::PADDING,
+            48.0 + font::PADDING,
+        ),
+        graphics,
+    ).unwrap();
 
     for (index, line) in menu_lines.iter().enumerate() {
         let new_line_offset = 40.0;
         text(
             line.color,
-            32,
+            font::SIZE,
             line.text,
             font,
             context.transform.trans(
-                menu_padding,
+                font::PADDING,
                 (index as f64 + 1.0) * new_line_offset + 192.0,
             ),
             graphics,
@@ -78,15 +94,15 @@ fn draw(
     }
 }
 
-pub fn run(window: &mut PistonWindow, opengl: &mut GlGraphics, _window_size: Size) {
+pub fn run(mut window: &mut PistonWindow, mut opengl: &mut GlGraphics, _window_size: Size) {
     let mut font = GlyphCache::new(
         "./assets/fonts/FiraSans-Regular.ttf",
         (),
         TextureSettings::new(),
     ).unwrap();
 
+    let mut game_settings = Settings::new();
     let mut menu_selection = MenuSelection::Simulate;
-    let menu_padding = 64 as f64;
     while let Some(event) = window.next() {
         if let Some(args) = event.render_args() {
             opengl.draw(args.viewport(), |context, graphics| {
@@ -95,7 +111,6 @@ pub fn run(window: &mut PistonWindow, opengl: &mut GlGraphics, _window_size: Siz
                     context,
                     graphics,
                     &mut font,
-                    menu_padding,
                     menu_selection
                 );
             });
@@ -124,11 +139,17 @@ pub fn run(window: &mut PistonWindow, opengl: &mut GlGraphics, _window_size: Siz
                             //
                         }
                         MenuSelection::Settings => {
-                            //
+                            settings::run(
+                                &mut window,
+                                &mut opengl,
+                                &mut font,
+                                &mut game_settings
+                            );
                         }
                         MenuSelection::Exit => break,
                     }
-                }
+                },
+                Key::Escape => break,
                 _ => {}
             }
         }
