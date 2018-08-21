@@ -23,8 +23,8 @@ pub struct Settings {
 impl Settings {
     pub fn new() -> Self {
         Settings {
-            setting1: 0.0,
-            setting2: 0.0,
+            setting1: 1.0,
+            setting2: 1.0,
         }
     }
 }

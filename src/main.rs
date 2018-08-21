@@ -1,6 +1,7 @@
 extern crate opengl_graphics;
 extern crate piston_window;
 extern crate rand;
+extern crate num;
 
 use piston_window::{OpenGL, PistonWindow, Size, WindowSettings};
 use opengl_graphics::GlGraphics;

@@ -1,7 +1,8 @@
 use opengl_graphics::{GlGraphics, GlyphCache};
-use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, RenderEvent,
+use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, ReleaseEvent, RenderEvent,
                     Transformed};
 
+use num;
 use config::{color, font};
 use menu::Settings;
 
@@ -116,6 +117,7 @@ pub fn run(
     settings: &mut Settings
 ) {
     let mut menu_selection = MenuSelection::Setting1;
+    let mut settings_step: f64 = 1.0;
 
     while let Some(event) = window.next() {
         if let Some(args) = event.render_args() {
@@ -132,8 +134,6 @@ pub fn run(
         }
 
         if let Some(Button::Keyboard(key)) = event.press_args() {
-            let settings_step: f64 = 1.0;
-
             match key {
                 Key::W | Key::Up => match menu_selection {
                     MenuSelection::Setting1 => {}
@@ -147,15 +147,15 @@ pub fn run(
                 },
                 Key::A | Key::Left => {
                     match menu_selection {
-                        MenuSelection::Setting1 => settings.setting1 -= settings_step,
-                        MenuSelection::Setting2 => settings.setting2 -= settings_step,
+                        MenuSelection::Setting1 => settings.setting1 = num::clamp(settings.setting1 - settings_step, 1.0, 1000.0),
+                        MenuSelection::Setting2 => settings.setting2 = num::clamp(settings.setting2 - settings_step, 1.0, 1000.0),
                         MenuSelection::Back     => {}
                     }
                 },
                 Key::D | Key::Right => {
                     match menu_selection {
-                        MenuSelection::Setting1 => settings.setting1 += settings_step,
-                        MenuSelection::Setting2 => settings.setting2 += settings_step,
+                        MenuSelection::Setting1 => settings.setting1 = num::clamp(settings.setting1 + settings_step, 1.0, 1000.0),
+                        MenuSelection::Setting2 => settings.setting2 = num::clamp(settings.setting2 + settings_step, 1.0, 1000.0),
                         MenuSelection::Back     => {}
                     }
                 },
@@ -165,8 +165,32 @@ pub fn run(
                         MenuSelection::Setting2 => {},
                         MenuSelection::Back     => break
                     }
-                },                
+                },
+                Key::LShift => {
+                    settings_step = 5.0;
+                },
+                Key::LCtrl => {
+                    settings_step = 10.0;
+                },
+                Key::LAlt => {
+                    settings_step = 100.0;
+                },
                 Key::Escape => break,
+                _ => {}
+            }
+        }
+
+        if let Some(Button::Keyboard(key)) = event.release_args() {
+            match key {
+                Key::LShift => {
+                    settings_step = 1.0;
+                },
+                Key::LCtrl => {
+                    settings_step = 1.0;
+                },
+                Key::LAlt => {
+                    settings_step = 1.0;
+                },
                 _ => {}
             }
         }
