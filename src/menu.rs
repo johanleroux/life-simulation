@@ -1,8 +1,8 @@
 use opengl_graphics::{GlGraphics, GlyphCache};
-use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, RenderEvent,
-                    Size, TextureSettings, Transformed};
+use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, RenderEvent, TextureSettings, Transformed};
 
 use config::{color, font};
+use simulation;
 use settings;
 
 #[derive(Copy, Clone)]
@@ -13,7 +13,6 @@ enum MenuSelection {
     Exit,
 }
 
-/// Volume for music and sound effects.
 #[derive(Copy, Clone)]
 pub struct Settings {
     pub setting1: f64,
@@ -94,7 +93,7 @@ fn draw(
     }
 }
 
-pub fn run(mut window: &mut PistonWindow, mut opengl: &mut GlGraphics, _window_size: Size) {
+pub fn run(mut window: &mut PistonWindow, mut opengl: &mut GlGraphics) {
     let mut font = GlyphCache::new(
         "./assets/fonts/FiraSans-Regular.ttf",
         (),
@@ -133,7 +132,9 @@ pub fn run(mut window: &mut PistonWindow, mut opengl: &mut GlGraphics, _window_s
                 Key::Space | Key::Return => {
                     match menu_selection {
                         MenuSelection::Simulate => {
-                            //
+                            let mut simulation = simulation::Simulation::new();
+                            
+                            simulation.run(&mut window, &mut opengl, &mut font);
                         }
                         MenuSelection::Load => {
                             //

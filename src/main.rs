@@ -3,25 +3,21 @@ extern crate piston_window;
 extern crate rand;
 extern crate num;
 
-use piston_window::{OpenGL, PistonWindow, Size, WindowSettings};
+use piston_window::{OpenGL, PistonWindow, WindowSettings};
 use opengl_graphics::GlGraphics;
 
 mod config;
 mod menu;
 mod settings;
+mod simulation;
 
 fn main() {
     let title = "Life Simulation";
-    let window_size = Size {
-        width: 1280,
-        height: 720,
-    };
-
     let opengl = OpenGL::V3_2;
 
     let mut window: PistonWindow = WindowSettings::new(
         title,
-        [window_size.width, window_size.height],
+        [config::WINDOW_SIZE.width, config::WINDOW_SIZE.height],
     ).opengl(opengl)
         .samples(4)
         .fullscreen(false)
@@ -32,5 +28,5 @@ fn main() {
 
     let mut gl = GlGraphics::new(opengl);
 
-    menu::run(&mut window, &mut gl, window_size);
+    menu::run(&mut window, &mut gl);
 }

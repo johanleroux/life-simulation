@@ -1,6 +1,5 @@
 use opengl_graphics::{GlGraphics, GlyphCache};
-use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, ReleaseEvent, RenderEvent,
-                    Transformed};
+use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, ReleaseEvent, RenderEvent, Transformed};
 
 use num;
 use config::{color, font};
@@ -182,13 +181,7 @@ pub fn run(
 
         if let Some(Button::Keyboard(key)) = event.release_args() {
             match key {
-                Key::LShift => {
-                    settings_step = 1.0;
-                },
-                Key::LCtrl => {
-                    settings_step = 1.0;
-                },
-                Key::LAlt => {
+                Key::LShift | Key::LCtrl | Key::LAlt => {
                     settings_step = 1.0;
                 },
                 _ => {}
