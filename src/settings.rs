@@ -3,40 +3,31 @@ use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent,
 
 use num;
 use config::{color, font};
-use menu::Settings;
 
 #[derive(Copy, Clone)]
-enum MenuSelection {
-    Setting1,
-    Setting2,
-    Back
+pub struct Settings {
+    pub setting1: f64,
+    pub setting2: f64,
 }
 
-fn draw(
-    context: Context,
-    graphics: &mut GlGraphics,
-    font: &mut GlyphCache,
-    menu_selection: MenuSelection,
-    settings: Settings
-) {
-    let mut _menu_color_setting1 = color::WHITE;
-    let mut _menu_color_setting2 = color::WHITE;
-    let mut _menu_color_back     = color::WHITE;
-
-    match menu_selection {
-        MenuSelection::Setting1 => _menu_color_setting1 = color::CYAN,
-        MenuSelection::Setting2 => _menu_color_setting2 = color::CYAN,
-        MenuSelection::Back     => _menu_color_back     = color::CYAN,
+impl Settings {
+    pub fn new() -> Self {
+        Settings {
+            setting1: 1.0,
+            setting2: 1.0,
+        }
     }
+}
 
+fn draw(context: Context, graphics: &mut GlGraphics, font: &mut GlyphCache, menu_selection: i32, settings: Settings) {
     text(
         color::WHITE,
-        font::SIZE + 12,
+        font::TITLE_SIZE,
         "Settings",
         font,
         context.transform.trans(
             font::PADDING,
-            48.0 + font::PADDING,
+            font::TITLE_PADDING,
         ),
         graphics,
     ).unwrap();
@@ -45,7 +36,7 @@ fn draw(
     
     // Setting 1
     text(
-        _menu_color_setting1,
+        font::color(menu_selection, 0),
         font::SIZE,
         "Setting 1",
         font,
@@ -56,7 +47,7 @@ fn draw(
         graphics,
     ).unwrap();
     text(
-        _menu_color_setting1,
+        font::color(menu_selection, 0),
         font::SIZE,
         &format!("{}", settings.setting1),
         font,
@@ -71,7 +62,7 @@ fn draw(
 
     // Setting 2
     text(
-        _menu_color_setting2,
+        font::color(menu_selection, 1),
         font::SIZE,
         "Setting 2",
         font,
@@ -82,7 +73,7 @@ fn draw(
         graphics,
     ).unwrap();
     text(
-        _menu_color_setting2,
+        font::color(menu_selection, 1),
         font::SIZE,
         &format!("{}", settings.setting2),
         font,
@@ -97,7 +88,7 @@ fn draw(
 
     // Back
     text(
-        _menu_color_back,
+        font::color(menu_selection, 2),
         font::SIZE,
         "Back",
         font,
@@ -109,60 +100,44 @@ fn draw(
     ).unwrap();
 }
 
-pub fn run(
-    window: &mut PistonWindow,
-    opengl: &mut GlGraphics,
-    font: &mut GlyphCache,
-    settings: &mut Settings
-) {
-    let mut menu_selection = MenuSelection::Setting1;
+pub fn run(window: &mut PistonWindow, opengl: &mut GlGraphics, font: &mut GlyphCache, settings: &mut Settings) {
+    let mut menu_selection: i32 = 0;
     let mut settings_step: f64 = 1.0;
 
     while let Some(event) = window.next() {
         if let Some(args) = event.render_args() {
             opengl.draw(args.viewport(), |context, graphics| {
                 clear(color::BLACK, graphics);
-                draw(
-                    context,
-                    graphics,
-                    font,
-                    menu_selection,
-                    *settings
-                )
+                draw(context, graphics, font, menu_selection, *settings);
             });
         }
 
         if let Some(Button::Keyboard(key)) = event.press_args() {
             match key {
-                Key::W | Key::Up => match menu_selection {
-                    MenuSelection::Setting1 => {}
-                    MenuSelection::Setting2 => menu_selection = MenuSelection::Setting1,
-                    MenuSelection::Back     => menu_selection = MenuSelection::Setting2,
-                },
-                Key::S | Key::Down => match menu_selection {
-                    MenuSelection::Setting1 => menu_selection = MenuSelection::Setting2,
-                    MenuSelection::Setting2 => menu_selection = MenuSelection::Back,
-                    MenuSelection::Back     => {}
-                },
+                Key::W | Key::Up => menu_selection = num::clamp(menu_selection - 1, 0, 2),
+                Key::S | Key::Down => menu_selection = num::clamp(menu_selection + 1, 0, 2),
                 Key::A | Key::Left => {
                     match menu_selection {
-                        MenuSelection::Setting1 => settings.setting1 = num::clamp(settings.setting1 - settings_step, 1.0, 1000.0),
-                        MenuSelection::Setting2 => settings.setting2 = num::clamp(settings.setting2 - settings_step, 1.0, 1000.0),
-                        MenuSelection::Back     => {}
+                        0 => settings.setting1 = num::clamp(settings.setting1 - settings_step, 1.0, 1000.0),
+                        1 => settings.setting2 = num::clamp(settings.setting2 - settings_step, 1.0, 1000.0),
+                        2 => {},
+                        _ => {}
                     }
                 },
                 Key::D | Key::Right => {
                     match menu_selection {
-                        MenuSelection::Setting1 => settings.setting1 = num::clamp(settings.setting1 + settings_step, 1.0, 1000.0),
-                        MenuSelection::Setting2 => settings.setting2 = num::clamp(settings.setting2 + settings_step, 1.0, 1000.0),
-                        MenuSelection::Back     => {}
+                        0 => settings.setting1 = num::clamp(settings.setting1 + settings_step, 1.0, 1000.0),
+                        1 => settings.setting2 = num::clamp(settings.setting2 + settings_step, 1.0, 1000.0),
+                        2 => {},
+                        _ => {}
                     }
                 },
                 Key::Space | Key::Return => {
                     match menu_selection {
-                        MenuSelection::Setting1 => {},
-                        MenuSelection::Setting2 => {},
-                        MenuSelection::Back     => break
+                        0 => {},
+                        1 => {},
+                        2 => break,
+                        _ => {}
                     }
                 },
                 Key::LShift => {

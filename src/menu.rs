@@ -1,88 +1,32 @@
 use opengl_graphics::{GlGraphics, GlyphCache};
 use piston_window::{clear, text, Button, Context, Key, PistonWindow, PressEvent, RenderEvent, TextureSettings, Transformed};
 
+use num;
 use config::{color, font};
 use simulation;
 use settings;
 
-#[derive(Copy, Clone)]
-enum MenuSelection {
-    Simulate,
-    Load,
-    Settings,
-    Exit,
-}
-
-#[derive(Copy, Clone)]
-pub struct Settings {
-    pub setting1: f64,
-    pub setting2: f64,
-}
-
-impl Settings {
-    pub fn new() -> Self {
-        Settings {
-            setting1: 1.0,
-            setting2: 1.0,
-        }
-    }
-}
-
-fn draw(
-    context: Context,
-    graphics: &mut GlGraphics,
-    font: &mut GlyphCache,
-    menu_selection: MenuSelection
-) {
-    let mut _menu_color_simulate = color::WHITE;
-    let mut _menu_color_load     = color::WHITE;
-    let mut _menu_color_settings = color::WHITE;
-    let mut _menu_color_exit     = color::WHITE;
-
-    match menu_selection {
-        MenuSelection::Simulate => _menu_color_simulate = color::CYAN,
-        MenuSelection::Load     => _menu_color_load     = color::CYAN,
-        MenuSelection::Settings => _menu_color_settings = color::CYAN,
-        MenuSelection::Exit     => _menu_color_exit     = color::CYAN,
-    }
-
-    let menu_lines = [
-        color::ColoredText {
-            color: _menu_color_simulate,
-            text: "Simulate",
-        },
-        color::ColoredText {
-            color: _menu_color_load,
-            text: "Load",
-        },
-        color::ColoredText {
-            color: _menu_color_settings,
-            text: "Settings",
-        },
-        color::ColoredText {
-            color: _menu_color_exit,
-            text: "Exit",
-        },
-    ];
-
+fn draw(context: Context, graphics: &mut GlGraphics, font: &mut GlyphCache, menu_lines: &mut Vec<String>, menu_selection: i32) {
+    // Heading
     text(
         color::WHITE,
-        font::SIZE + 12,
+        font::TITLE_SIZE,
         "Life Simulation",
         font,
         context.transform.trans(
             font::PADDING,
-            48.0 + font::PADDING,
+            font::TITLE_PADDING,
         ),
         graphics,
     ).unwrap();
 
+    // Menu
     for (index, line) in menu_lines.iter().enumerate() {
         let new_line_offset = 40.0;
         text(
-            line.color,
+            font::color(menu_selection, index),
             font::SIZE,
-            line.text,
+            line,
             font,
             context.transform.trans(
                 font::PADDING,
@@ -99,47 +43,41 @@ pub fn run(mut window: &mut PistonWindow, mut opengl: &mut GlGraphics) {
         (),
         TextureSettings::new(),
     ).unwrap();
+    let mut game_settings = settings::Settings::new();
 
-    let mut game_settings = Settings::new();
-    let mut menu_selection = MenuSelection::Simulate;
+    let mut menu_selection: i32 = 0;
+    let mut menu_lines: Vec<String> = vec![String::new()];
+    menu_lines.clear();
+    menu_lines.push(String::from("Simulate"));
+    menu_lines.push(String::from("Load"));
+    menu_lines.push(String::from("Settings"));
+    menu_lines.push(String::from("Exit"));
+
     while let Some(event) = window.next() {
         if let Some(args) = event.render_args() {
             opengl.draw(args.viewport(), |context, graphics| {
                 clear(color::BLACK, graphics);
-                draw(
-                    context,
-                    graphics,
-                    &mut font,
-                    menu_selection
-                );
+                draw(context, graphics, &mut font, &mut menu_lines, menu_selection);
             });
         }
 
         if let Some(Button::Keyboard(key)) = event.press_args() {
             match key {
-                Key::W | Key::Up => match menu_selection {
-                    MenuSelection::Simulate => {}
-                    MenuSelection::Load     => menu_selection = MenuSelection::Simulate,
-                    MenuSelection::Settings => menu_selection = MenuSelection::Load,
-                    MenuSelection::Exit     => menu_selection = MenuSelection::Settings,
-                },
-                Key::S | Key::Down => match menu_selection {
-                    MenuSelection::Simulate => menu_selection = MenuSelection::Load,
-                    MenuSelection::Load     => menu_selection = MenuSelection::Settings,
-                    MenuSelection::Settings => menu_selection = MenuSelection::Exit,
-                    MenuSelection::Exit     => {}
-                },
+                Key::W | Key::Up   => menu_selection = num::clamp(menu_selection - 1, 0, menu_lines.len() as i32 - 1),
+                Key::S | Key::Down => menu_selection = num::clamp(menu_selection + 1, 0, menu_lines.len() as i32 - 1),
                 Key::Space | Key::Return => {
                     match menu_selection {
-                        MenuSelection::Simulate => {
+                        0 => { 
+                            // Simulation
                             let mut simulation = simulation::Simulation::new();
                             
                             simulation.run(&mut window, &mut opengl, &mut font);
                         }
-                        MenuSelection::Load => {
-                            //
+                        1 => { 
+                            // Load
                         }
-                        MenuSelection::Settings => {
+                        2 => { 
+                            // Settings
                             settings::run(
                                 &mut window,
                                 &mut opengl,
@@ -147,7 +85,8 @@ pub fn run(mut window: &mut PistonWindow, mut opengl: &mut GlGraphics) {
                                 &mut game_settings
                             );
                         }
-                        MenuSelection::Exit => break,
+                        3 => break,
+                        _ => {},
                     }
                 },
                 Key::Escape => break,
